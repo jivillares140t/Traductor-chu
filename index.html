@@ -1,309 +1,186 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Traductor Chu Mejorado</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Traductor CHU</title>
 
-<link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json">
 
-<style>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
 
-body{
-    font-family: Arial, sans-serif;
-    background:#f2f2f2;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    min-height:100vh;
-    margin:0;
-    padding:15px;
-}
+    .contenedor {
+      background: white;
+      width: 85%;
+      max-width: 430px;
+      padding: 30px;
+      border-radius: 25px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      text-align: center;
+    }
 
-.contenedor{
-    background:white;
-    padding:25px;
-    border-radius:20px;
-    box-shadow:0 0 15px rgba(0,0,0,0.2);
-    width:100%;
-    max-width:520px;
-    text-align:center;
-}
+    h1 {
+      font-size: 34px;
+      margin-bottom: 10px;
+    }
 
-h1{
-    margin-top:0;
-}
+    p {
+      font-size: 18px;
+    }
 
-button{
-    background:#2196F3;
-    color:white;
-    border:none;
-    padding:15px 25px;
-    border-radius:12px;
-    font-size:18px;
-    cursor:pointer;
-    margin:8px;
-}
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 18px 28px;
+      margin: 10px;
+      font-size: 22px;
+      color: white;
+    }
 
-.parar{
-    background:#f44336;
-}
+    #btnEscuchar {
+      background: #2196f3;
+    }
 
-.caja{
-    background:#f7f7f7;
-    padding:15px;
-    border-radius:10px;
-    margin-top:18px;
-    text-align:left;
-    min-height:35px;
-    word-wrap:break-word;
-}
+    #btnParar {
+      background: #f44336;
+    }
 
-.titulo{
-    font-weight:bold;
-    margin-bottom:8px;
-}
+    .caja {
+      background: #f5f5f5;
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 14px;
+      text-align: left;
+      font-size: 20px;
+      word-wrap: break-word;
+    }
 
-.estado{
-    margin-top:10px;
-    font-weight:bold;
-}
+    .titulo {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
 
-</style>
+    #estado {
+      font-weight: bold;
+      margin: 20px 0;
+      font-size: 20px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="contenedor">
+  <div class="contenedor">
+    <h1>🎤 Traductor CHU</h1>
+    <p>Traducción por sílabas</p>
 
-<h1>🎤 Traductor CHU</h1>
+    <button id="btnEscuchar">🎤 Escuchar</button>
+    <button id="btnParar">⛔ Parar</button>
 
-<p>Versión mejorada para hablar rápido</p>
+    <div id="estado">Parado</div>
 
-<button onclick="escuchar()">🎤 Escuchar</button>
+    <div class="caja">
+      <div class="titulo">Texto escuchado:</div>
+      <div id="textoEscuchado">---</div>
+    </div>
 
-<button class="parar" onclick="parar()">
-⛔ Parar
-</button>
+    <div class="caja">
+      <div class="titulo">Texto limpio:</div>
+      <div id="textoLimpio">---</div>
+    </div>
 
-<div class="estado" id="estado">
-Pulsa Escuchar
-</div>
+    <div class="caja">
+      <div class="titulo">Traducción:</div>
+      <div id="traduccion">---</div>
+    </div>
+  </div>
 
-<div class="caja">
-<div class="titulo">Texto escuchado:</div>
-<div id="original">...</div>
-</div>
+  <script>
+    const btnEscuchar = document.getElementById("btnEscuchar");
+    const btnParar = document.getElementById("btnParar");
+    const estado = document.getElementById("estado");
+    const textoEscuchado = document.getElementById("textoEscuchado");
+    const textoLimpio = document.getElementById("textoLimpio");
+    const traduccion = document.getElementById("traduccion");
 
-<div class="caja">
-<div class="titulo">Texto limpio:</div>
-<div id="limpio">...</div>
-</div>
+    let reconocimiento;
 
-<div class="caja">
-<div class="titulo">Traducción:</div>
-<div id="traducido">...</div>
-</div>
-
-</div>
-
-<script>
-
-let recognition;
-let escuchando = false;
-let textoAcumulado = "";
-
-function limpiarTexto(texto){
-
-    texto = texto.toLowerCase();
-
-    texto = texto.replace(/[.,;:¿?¡!]/g, " ");
-
-    texto = texto
-        .replaceAll("chú", "chu")
-        .replaceAll("chuu", "chu")
-        .replaceAll("choo", "chu")
-        .replaceAll("chou", "chu")
-        .replaceAll("shu", "chu")
-        .replaceAll("xu", "chu");
-
-    texto = texto
-        .replaceAll("cho la", "chuo chula")
-        .replaceAll("chu la", "chula")
-        .replaceAll("chu o", "chuo");
-
-    texto = texto.replace(/\s+/g, " ").trim();
-
-    return texto;
-}
-
-function traducirChu(texto){
-
-    texto = limpiarTexto(texto);
-
-    let partes = texto.split(" ");
-    let resultado = "";
-
-    for(let parte of partes){
-
-        parte = parte.trim();
-
-        if(parte === ""){
-            continue;
-        }
-
-        if(parte.startsWith("chu")){
-            resultado += parte.substring(3);
-        }else{
-            resultado += parte.replaceAll("chu", "");
-        }
+    function limpiarTexto(texto) {
+      return texto
+        .toLowerCase()
+        .replace(/[.,!?¿¡]/g, "")
+        .trim();
     }
 
-    return resultado;
-}
-
-function iniciarReconocimiento(){
-
-    const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
-
-    if(!SpeechRecognition){
-        alert("Tu navegador no soporta reconocimiento de voz");
-        return null;
+    function traducirChu(texto) {
+      return texto
+        .split(" ")
+        .map(palabra => {
+          let partes = palabra.split("chu");
+          partes = partes.filter(parte => parte.trim() !== "");
+          return partes.join("");
+        })
+        .join(" ");
     }
 
-    const rec = new SpeechRecognition();
+    if ("webkitSpeechRecognition" in window) {
+      reconocimiento = new webkitSpeechRecognition();
+      reconocimiento.lang = "es-ES";
+      reconocimiento.continuous = true;
+      reconocimiento.interimResults = false;
 
-    rec.lang = "es-ES";
-    rec.continuous = true;
-    rec.interimResults = true;
-    rec.maxAlternatives = 5;
+      reconocimiento.onstart = function() {
+        estado.textContent = "Escuchando...";
+      };
 
-    rec.onstart = function(){
+      reconocimiento.onresult = function(event) {
+        let texto = "";
 
-        escuchando = true;
-
-        document.getElementById("estado").innerText =
-        "Escuchando...";
-    };
-
-    rec.onresult = function(event){
-
-        let provisional = "";
-        let final = "";
-
-        for(let i = event.resultIndex; i < event.results.length; i++){
-
-            let mejor =
-            event.results[i][0].transcript;
-
-            for(let j = 0; j < event.results[i].length; j++){
-
-                let candidato =
-                event.results[i][j].transcript.toLowerCase();
-
-                if(
-                    candidato.includes("chu") ||
-                    candidato.includes("shu") ||
-                    candidato.includes("cho")
-                ){
-                    mejor = candidato;
-                    break;
-                }
-            }
-
-            if(event.results[i].isFinal){
-                final += mejor + " ";
-            }else{
-                provisional += mejor + " ";
-            }
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          texto += event.results[i][0].transcript;
         }
 
-        if(final.trim() !== ""){
-            textoAcumulado += final;
-        }
+        const limpio = limpiarTexto(texto);
+        const traducido = traducirChu(limpio);
 
-        let escuchado =
-        (textoAcumulado + provisional).trim();
+        textoEscuchado.textContent = texto;
+        textoLimpio.textContent = limpio;
+        traduccion.textContent = traducido;
+      };
 
-        let limpio =
-        limpiarTexto(escuchado);
+      reconocimiento.onerror = function(event) {
+        estado.textContent = "Error: " + event.error;
+      };
 
-        let traducido =
-        traducirChu(escuchado);
+      reconocimiento.onend = function() {
+        estado.textContent = "Parado";
+      };
 
-        document.getElementById("original").innerText =
-        escuchado || "...";
-
-        document.getElementById("limpio").innerText =
-        limpio || "...";
-
-        document.getElementById("traducido").innerText =
-        traducido || "...";
-    };
-
-    rec.onerror = function(event){
-
-        document.getElementById("estado").innerText =
-        "Error: " + event.error;
-    };
-
-    rec.onend = function(){
-
-        if(escuchando){
-
-            try{
-                rec.start();
-            }catch(e){}
-
-        }else{
-
-            document.getElementById("estado").innerText =
-            "Parado";
-        }
-    };
-
-    return rec;
-}
-
-function escuchar(){
-
-    textoAcumulado = "";
-
-    document.getElementById("original").innerText = "...";
-    document.getElementById("limpio").innerText = "...";
-    document.getElementById("traducido").innerText = "...";
-
-    if(!recognition){
-        recognition = iniciarReconocimiento();
+    } else {
+      estado.textContent = "Tu navegador no permite reconocimiento de voz";
     }
 
-    if(recognition){
+    btnEscuchar.addEventListener("click", function() {
+      if (reconocimiento) {
+        reconocimiento.start();
+      }
+    });
 
-        try{
-            recognition.start();
-        }catch(e){
-
-            document.getElementById("estado").innerText =
-            "Ya está escuchando";
-        }
-    }
-}
-
-function parar(){
-
-    escuchando = false;
-
-    if(recognition){
-        recognition.stop();
-    }
-
-    document.getElementById("estado").innerText =
-    "Parado";
-}
-
-</script>
+    btnParar.addEventListener("click", function() {
+      if (reconocimiento) {
+        reconocimiento.stop();
+      }
+    });
+  </script>
 
 </body>
 </html>
