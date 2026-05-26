@@ -134,22 +134,27 @@ function traducir(texto){
     texto = normalizar(texto);
 
     let palabras = texto.split(/\s+/);
-
     let resultado = "";
 
-    for(let i=0; i<palabras.length; i++){
+    for(let i = 0; i < palabras.length; i++){
 
         if(palabras[i] === "chu"){
 
             if(i + 1 < palabras.length){
-
                 resultado += palabras[i + 1];
                 i++;
-
             }
+
+        } else if(palabras[i].startsWith("chu")) {
+
+            resultado += palabras[i].replace("chu", "");
 
         }
 
+    }
+
+    if(resultado === ""){
+        resultado = texto.replace(/chu/g, "");
     }
 
     return resultado;
