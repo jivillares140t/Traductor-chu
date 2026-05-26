@@ -1,186 +1,185 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Traductor CHU</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="manifest" href="manifest.json">
+<title>Traductor CHU</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f2f2f7;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
+<style>
 
-    .contenedor {
-      background: white;
-      width: 85%;
-      max-width: 430px;
-      padding: 30px;
-      border-radius: 25px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-      text-align: center;
-    }
+body{
+    margin:0;
+    font-family:Arial;
+    background:#f2f2f7;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
 
-    h1 {
-      font-size: 34px;
-      margin-bottom: 10px;
-    }
+.contenedor{
+    background:white;
+    width:85%;
+    max-width:450px;
+    padding:30px;
+    border-radius:25px;
+    box-shadow:0 8px 25px rgba(0,0,0,0.15);
+    text-align:center;
+}
 
-    p {
-      font-size: 18px;
-    }
+h1{
+    font-size:34px;
+}
 
-    button {
-      border: none;
-      border-radius: 14px;
-      padding: 18px 28px;
-      margin: 10px;
-      font-size: 22px;
-      color: white;
-    }
+button{
+    border:none;
+    padding:18px 28px;
+    border-radius:14px;
+    font-size:22px;
+    color:white;
+    margin:10px;
+}
 
-    #btnEscuchar {
-      background: #2196f3;
-    }
+#escuchar{
+    background:#2196f3;
+}
 
-    #btnParar {
-      background: #f44336;
-    }
+#parar{
+    background:#f44336;
+}
 
-    .caja {
-      background: #f5f5f5;
-      margin-top: 18px;
-      padding: 18px;
-      border-radius: 14px;
-      text-align: left;
-      font-size: 20px;
-      word-wrap: break-word;
-    }
+.caja{
+    margin-top:20px;
+    background:#f5f5f5;
+    padding:18px;
+    border-radius:14px;
+    text-align:left;
+    font-size:22px;
+    word-wrap:break-word;
+}
 
-    .titulo {
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
+.titulo{
+    font-weight:bold;
+    margin-bottom:10px;
+}
 
-    #estado {
-      font-weight: bold;
-      margin: 20px 0;
-      font-size: 20px;
-    }
-  </style>
+#estado{
+    margin-top:15px;
+    font-size:20px;
+    font-weight:bold;
+}
+
+</style>
 </head>
 
 <body>
 
-  <div class="contenedor">
-    <h1>🎤 Traductor CHU</h1>
-    <p>Traducción por sílabas</p>
+<div class="contenedor">
 
-    <button id="btnEscuchar">🎤 Escuchar</button>
-    <button id="btnParar">⛔ Parar</button>
+<h1>🎤 Traductor CHU</h1>
 
-    <div id="estado">Parado</div>
+<p>
+Habla separando sílabas:<br>
+<b>"chu ho chu la"</b>
+</p>
 
-    <div class="caja">
-      <div class="titulo">Texto escuchado:</div>
-      <div id="textoEscuchado">---</div>
-    </div>
+<button id="escuchar">🎤 Escuchar</button>
+<button id="parar">⛔ Parar</button>
 
-    <div class="caja">
-      <div class="titulo">Texto limpio:</div>
-      <div id="textoLimpio">---</div>
-    </div>
+<div id="estado">Parado</div>
 
-    <div class="caja">
-      <div class="titulo">Traducción:</div>
-      <div id="traduccion">---</div>
-    </div>
-  </div>
+<div class="caja">
+<div class="titulo">Escuchado:</div>
+<div id="texto">---</div>
+</div>
 
-  <script>
-    const btnEscuchar = document.getElementById("btnEscuchar");
-    const btnParar = document.getElementById("btnParar");
-    const estado = document.getElementById("estado");
-    const textoEscuchado = document.getElementById("textoEscuchado");
-    const textoLimpio = document.getElementById("textoLimpio");
-    const traduccion = document.getElementById("traduccion");
+<div class="caja">
+<div class="titulo">Traducción:</div>
+<div id="resultado">---</div>
+</div>
 
-    let reconocimiento;
+</div>
 
-    function limpiarTexto(texto) {
-      return texto
-        .toLowerCase()
-        .replace(/[.,!?¿¡]/g, "")
-        .trim();
-    }
+<script>
 
-    function traducirChu(texto) {
-      return texto
-        .split(" ")
-        .map(palabra => {
-          let partes = palabra.split("chu");
-          partes = partes.filter(parte => parte.trim() !== "");
-          return partes.join("");
-        })
-        .join(" ");
-    }
+const escucharBtn = document.getElementById("escuchar");
+const pararBtn = document.getElementById("parar");
 
-    if ("webkitSpeechRecognition" in window) {
-      reconocimiento = new webkitSpeechRecognition();
-      reconocimiento.lang = "es-ES";
-      reconocimiento.continuous = true;
-      reconocimiento.interimResults = false;
+const textoDiv = document.getElementById("texto");
+const resultadoDiv = document.getElementById("resultado");
+const estadoDiv = document.getElementById("estado");
 
-      reconocimiento.onstart = function() {
-        estado.textContent = "Escuchando...";
-      };
+let recognition;
 
-      reconocimiento.onresult = function(event) {
-        let texto = "";
+function traducir(texto){
 
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          texto += event.results[i][0].transcript;
+    let palabras = texto.split(" ");
+
+    let resultado = "";
+
+    for(let i=0; i<palabras.length; i++){
+
+        if(palabras[i] === "chu"){
+
+            if(i + 1 < palabras.length){
+                resultado += palabras[i + 1];
+                i++;
+            }
+
         }
 
-        const limpio = limpiarTexto(texto);
-        const traducido = traducirChu(limpio);
-
-        textoEscuchado.textContent = texto;
-        textoLimpio.textContent = limpio;
-        traduccion.textContent = traducido;
-      };
-
-      reconocimiento.onerror = function(event) {
-        estado.textContent = "Error: " + event.error;
-      };
-
-      reconocimiento.onend = function() {
-        estado.textContent = "Parado";
-      };
-
-    } else {
-      estado.textContent = "Tu navegador no permite reconocimiento de voz";
     }
 
-    btnEscuchar.addEventListener("click", function() {
-      if (reconocimiento) {
-        reconocimiento.start();
-      }
-    });
+    return resultado;
+}
 
-    btnParar.addEventListener("click", function() {
-      if (reconocimiento) {
-        reconocimiento.stop();
-      }
-    });
-  </script>
+if("webkitSpeechRecognition" in window){
+
+    recognition = new webkitSpeechRecognition();
+
+    recognition.lang = "es-ES";
+    recognition.continuous = true;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+        estadoDiv.textContent = "Escuchando...";
+    };
+
+    recognition.onresult = (event) => {
+
+        let texto = "";
+
+        for(let i=event.resultIndex; i<event.results.length; i++){
+            texto += event.results[i][0].transcript;
+        }
+
+        texto = texto.toLowerCase();
+
+        textoDiv.textContent = texto;
+
+        resultadoDiv.textContent = traducir(texto);
+    };
+
+    recognition.onerror = (event) => {
+        estadoDiv.textContent = "Error: " + event.error;
+    };
+
+    recognition.onend = () => {
+        estadoDiv.textContent = "Parado";
+    };
+
+}
+
+escucharBtn.onclick = () => {
+    recognition.start();
+};
+
+pararBtn.onclick = () => {
+    recognition.stop();
+};
+
+</script>
 
 </body>
 </html>
