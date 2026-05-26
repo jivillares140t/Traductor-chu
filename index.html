@@ -80,8 +80,8 @@ button{
 <h1>🎤 Traductor CHU</h1>
 
 <p>
-Habla separando sílabas:<br>
-<b>"chu ho chu la"</b>
+Habla separado:<br>
+<b>"chu ... ho ... chu ... la"</b>
 </p>
 
 <button id="escuchar">🎤 Escuchar</button>
@@ -112,9 +112,28 @@ const estadoDiv = document.getElementById("estado");
 
 let recognition;
 
+function normalizar(texto){
+
+    return texto
+    .toLowerCase()
+    .replace(/[.,!?¿¡]/g,"")
+
+    // Variantes que reconoce mal Chrome
+    .replace(/\btwo\b/g,"chu")
+    .replace(/\btu\b/g,"chu")
+    .replace(/\btú\b/g,"chu")
+    .replace(/\bchoo\b/g,"chu")
+    .replace(/\bchú\b/g,"chu")
+    .replace(/\bshu\b/g,"chu")
+
+    .trim();
+}
+
 function traducir(texto){
 
-    let palabras = texto.split(" ");
+    texto = normalizar(texto);
+
+    let palabras = texto.split(/\s+/);
 
     let resultado = "";
 
@@ -123,8 +142,10 @@ function traducir(texto){
         if(palabras[i] === "chu"){
 
             if(i + 1 < palabras.length){
+
                 resultado += palabras[i + 1];
                 i++;
+
             }
 
         }
@@ -143,7 +164,9 @@ if("webkitSpeechRecognition" in window){
     recognition.interimResults = false;
 
     recognition.onstart = () => {
+
         estadoDiv.textContent = "Escuchando...";
+
     };
 
     recognition.onresult = (event) => {
@@ -151,7 +174,9 @@ if("webkitSpeechRecognition" in window){
         let texto = "";
 
         for(let i=event.resultIndex; i<event.results.length; i++){
+
             texto += event.results[i][0].transcript;
+
         }
 
         texto = texto.toLowerCase();
@@ -159,24 +184,33 @@ if("webkitSpeechRecognition" in window){
         textoDiv.textContent = texto;
 
         resultadoDiv.textContent = traducir(texto);
+
     };
 
     recognition.onerror = (event) => {
+
         estadoDiv.textContent = "Error: " + event.error;
+
     };
 
     recognition.onend = () => {
+
         estadoDiv.textContent = "Parado";
+
     };
 
 }
 
 escucharBtn.onclick = () => {
+
     recognition.start();
+
 };
 
 pararBtn.onclick = () => {
+
     recognition.stop();
+
 };
 
 </script>
