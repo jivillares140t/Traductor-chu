@@ -165,7 +165,7 @@ if("webkitSpeechRecognition" in window){
     recognition = new webkitSpeechRecognition();
 
     recognition.lang = "es-ES";
-    recognition.continuous = true;
+    recognition.continuous = false;
     recognition.interimResults = false;
 
     recognition.onstart = () => {
