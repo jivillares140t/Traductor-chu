@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -121,4 +121,189 @@ function limpiarTexto(texto){
 
     texto = texto
         .replaceAll("chú", "chu")
-        .
+        .replaceAll("chuu", "chu")
+        .replaceAll("choo", "chu")
+        .replaceAll("chou", "chu")
+        .replaceAll("shu", "chu")
+        .replaceAll("xu", "chu");
+
+    texto = texto
+        .replaceAll("cho la", "chuo chula")
+        .replaceAll("chu la", "chula")
+        .replaceAll("chu o", "chuo");
+
+    texto = texto.replace(/\s+/g, " ").trim();
+
+    return texto;
+}
+
+function traducirChu(texto){
+
+    texto = limpiarTexto(texto);
+
+    let partes = texto.split(" ");
+    let resultado = "";
+
+    for(let parte of partes){
+
+        parte = parte.trim();
+
+        if(parte === ""){
+            continue;
+        }
+
+        if(parte.startsWith("chu")){
+            resultado += parte.substring(3);
+        }else{
+            resultado += parte.replaceAll("chu", "");
+        }
+    }
+
+    return resultado;
+}
+
+function iniciarReconocimiento(){
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if(!SpeechRecognition){
+        alert("Tu navegador no soporta reconocimiento de voz");
+        return null;
+    }
+
+    const rec = new SpeechRecognition();
+
+    rec.lang = "es-ES";
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.maxAlternatives = 5;
+
+    rec.onstart = function(){
+
+        escuchando = true;
+
+        document.getElementById("estado").innerText =
+        "Escuchando...";
+    };
+
+    rec.onresult = function(event){
+
+        let provisional = "";
+        let final = "";
+
+        for(let i = event.resultIndex; i < event.results.length; i++){
+
+            let mejor =
+            event.results[i][0].transcript;
+
+            for(let j = 0; j < event.results[i].length; j++){
+
+                let candidato =
+                event.results[i][j].transcript.toLowerCase();
+
+                if(
+                    candidato.includes("chu") ||
+                    candidato.includes("shu") ||
+                    candidato.includes("cho")
+                ){
+                    mejor = candidato;
+                    break;
+                }
+            }
+
+            if(event.results[i].isFinal){
+                final += mejor + " ";
+            }else{
+                provisional += mejor + " ";
+            }
+        }
+
+        if(final.trim() !== ""){
+            textoAcumulado += final;
+        }
+
+        let escuchado =
+        (textoAcumulado + provisional).trim();
+
+        let limpio =
+        limpiarTexto(escuchado);
+
+        let traducido =
+        traducirChu(escuchado);
+
+        document.getElementById("original").innerText =
+        escuchado || "...";
+
+        document.getElementById("limpio").innerText =
+        limpio || "...";
+
+        document.getElementById("traducido").innerText =
+        traducido || "...";
+    };
+
+    rec.onerror = function(event){
+
+        document.getElementById("estado").innerText =
+        "Error: " + event.error;
+    };
+
+    rec.onend = function(){
+
+        if(escuchando){
+
+            try{
+                rec.start();
+            }catch(e){}
+
+        }else{
+
+            document.getElementById("estado").innerText =
+            "Parado";
+        }
+    };
+
+    return rec;
+}
+
+function escuchar(){
+
+    textoAcumulado = "";
+
+    document.getElementById("original").innerText = "...";
+    document.getElementById("limpio").innerText = "...";
+    document.getElementById("traducido").innerText = "...";
+
+    if(!recognition){
+        recognition = iniciarReconocimiento();
+    }
+
+    if(recognition){
+
+        try{
+            recognition.start();
+        }catch(e){
+
+            document.getElementById("estado").innerText =
+            "Ya está escuchando";
+        }
+    }
+}
+
+function parar(){
+
+    escuchando = false;
+
+    if(recognition){
+        recognition.stop();
+    }
+
+    document.getElementById("estado").innerText =
+    "Parado";
+}
+
+</script>
+
+</body>
+</html>
